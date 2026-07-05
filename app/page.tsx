@@ -8,10 +8,11 @@ import { cookies } from "next/headers";
 export const revalidate = 300;
 
 export default async function HomePage() {
-  // Get session from cookies
+  // Manually get session from cookies
   const cookieStore = cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const session = token ? await verifySession(token) : null;
+  const isLoggedIn = !!session;
 
   const [heroImages, featured] = await Promise.all([
     prisma.heroImage.findMany({ 
@@ -27,7 +28,6 @@ export default async function HomePage() {
     }),
   ]);
 
-  const isLoggedIn = !!session;
   const listingLink = isLoggedIn ? "/properties/create" : "/signup";
 
   return (
@@ -217,4 +217,4 @@ export default async function HomePage() {
       </section>
     </div>
   );
-}
+        }
