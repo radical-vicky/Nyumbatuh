@@ -118,12 +118,6 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
             {property.numUnits && (
               <span>{property.numUnits} units</span>
             )}
-            {property.bedrooms && (
-              <span>{property.bedrooms} bedrooms</span>
-            )}
-            {property.bathrooms && (
-              <span>{property.bathrooms} bathrooms</span>
-            )}
           </div>
 
           {/* Description */}
@@ -157,4 +151,4 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
       </div>
     </div>
   );
-}
+        }
