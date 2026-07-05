@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
 // Edge-safe module: only jose here. Password hashing lives in lib/password.ts
 // so bcryptjs never gets pulled into the middleware bundle.
@@ -31,6 +32,16 @@ export async function verifySession(token: string): Promise<SessionPayload | nul
   } catch {
     return null;
   }
+}
+
+// ✅ Add this function
+export async function getSession(): Promise<SessionPayload | null> {
+  const cookieStore = cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  
+  if (!token) return null;
+  
+  return await verifySession(token);
 }
 
 export const SESSION_COOKIE = COOKIE_NAME;
