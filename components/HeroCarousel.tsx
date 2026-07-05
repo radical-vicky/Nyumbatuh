@@ -6,7 +6,12 @@ import Link from "next/link";
 
 type HeroImg = { id: string; url: string; caption?: string | null };
 
-export default function HeroCarousel({ images }: { images: HeroImg[] }) {
+interface HeroCarouselProps {
+  images: HeroImg[];
+  isLoggedIn?: boolean; // Add this prop
+}
+
+export default function HeroCarousel({ images, isLoggedIn = false }: HeroCarouselProps) {
   const [active, setActive] = useState(0);
   const slides: Array<HeroImg | { gradient: string }> = images.length > 0 ? images : FALLBACK;
 
@@ -20,6 +25,10 @@ export default function HeroCarousel({ images }: { images: HeroImg[] }) {
     if (index === active) return;
     setActive(index);
   };
+
+  // Determine where "List your property" should go
+  const listingLink = isLoggedIn ? "/properties/create" : "/signup";
+  const ctaText = isLoggedIn ? "List your property now" : "List your property, free";
 
   return (
     <section className="relative isolate flex min-h-[560px] items-center overflow-hidden sm:min-h-[620px] lg:min-h-[700px]">
@@ -87,10 +96,10 @@ export default function HeroCarousel({ images }: { images: HeroImg[] }) {
           {/* CTA Buttons */}
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
-              href="/signup"
+              href={listingLink}
               className="group relative overflow-hidden rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700 hover:shadow-xl hover:shadow-brand-600/40 active:scale-95"
             >
-              <span className="relative z-10">List your property, free</span>
+              <span className="relative z-10">{ctaText}</span>
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
             </Link>
             <Link
