@@ -25,10 +25,24 @@ export default function SignupPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, role }),
       });
+      
+      const data = await res.json();
+      
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error?.fieldErrors ? Object.values(body.error.fieldErrors)[0]?.[0] : body.error || "Could not create your account.");
+        let errorMessage = data.error || "Could not create your account.";
+        
+        // Handle validation errors
+        if (data.error?.fieldErrors) {
+          const fieldErrors = data.error.fieldErrors;
+          const firstError = Object.values(fieldErrors)[0];
+          if (Array.isArray(firstError) && firstError.length > 0) {
+            errorMessage = firstError[0];
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
+      
       router.push(next || (role === "OWNER" ? "/dashboard" : "/properties"));
       router.refresh();
     } catch (err: any) {
@@ -68,22 +82,53 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {error && <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>}
           <div>
-            <label className="label-text">Full name</label>
-            <input required className="input-field" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <label className="block text-sm font-medium text-gray-700">Full name</label>
+            <input 
+              required 
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500" 
+              value={form.name} 
+              onChange={(e) => setForm({ ...form, name: e.target.value })} 
+              disabled={submitting}
+            />
           </div>
           <div>
-            <label className="label-text">Email</label>
-            <input required type="email" className="input-field" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input 
+              required 
+              type="email" 
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500" 
+              value={form.email} 
+              onChange={(e) => setForm({ ...form, email: e.target.value })} 
+              disabled={submitting}
+            />
           </div>
           <div>
-            <label className="label-text">Phone (optional)</label>
-            <input className="input-field" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <label className="block text-sm font-medium text-gray-700">Phone (optional)</label>
+            <input 
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500" 
+              value={form.phone} 
+              onChange={(e) => setForm({ ...form, phone: e.target.value })} 
+              disabled={submitting}
+            />
           </div>
           <div>
-            <label className="label-text">Password</label>
-            <input required type="password" minLength={8} className="input-field" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <input 
+              required 
+              type="password" 
+              minLength={8} 
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500" 
+              value={form.password} 
+              onChange={(e) => setForm({ ...form, password: e.target.value })} 
+              disabled={submitting}
+            />
+            <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
           </div>
-          <button type="submit" disabled={submitting} className="btn-primary w-full">
+          <button 
+            type="submit" 
+            disabled={submitting} 
+            className="w-full rounded-md bg-brand-600 px-4 py-2 text-white font-semibold hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {submitting ? "Creating account…" : "Create account"}
           </button>
         </form>

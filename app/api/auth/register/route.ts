@@ -11,12 +11,19 @@ export async function POST(req: NextRequest) {
     
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.flatten() },
+        { 
+          error: {
+            message: "Validation error",
+            fieldErrors: parsed.error.flatten().fieldErrors
+          }
+        },
         { status: 400 }
       );
     }
     
     const { name, email, phone, password } = parsed.data;
+    // Get role from body, default to OWNER
+    const role = body.role || "OWNER";
 
     // Check if user exists
     const existing = await prisma.user.findUnique({
@@ -33,22 +40,22 @@ export async function POST(req: NextRequest) {
     // Hash password
     const passwordHash = await hashPassword(password);
     
-    // Create user with OWNER role
+    // Create user with specified role
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone: phone || null,
         passwordHash,
-        role: "OWNER",  // Explicitly set to OWNER
+        role: role as "OWNER" | "ADMIN" | "TENANT",
       },
     });
 
-    // Cast role to the correct type
+    // Create session token
     const token = await signSession({
       userId: user.id,
       email: user.email,
-      role: user.role as "OWNER" | "ADMIN" | "TENANT", // ← Add this cast
+      role: user.role as "OWNER" | "ADMIN" | "TENANT",
       name: user.name,
     });
 
