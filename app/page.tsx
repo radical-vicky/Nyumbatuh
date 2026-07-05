@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 export const revalidate = 300;
 
 export default async function HomePage() {
-  // Manually get session from cookies
+  // Manually check session
   const cookieStore = cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const session = token ? await verifySession(token) : null;
@@ -28,7 +28,8 @@ export default async function HomePage() {
     }),
   ]);
 
-  const listingLink = isLoggedIn ? "/properties/create" : "/signup";
+  // ✅ Point to the existing dashboard/new page
+  const listingLink = isLoggedIn ? "/dashboard/new" : "/signup";
 
   return (
     <div>
@@ -217,4 +218,4 @@ export default async function HomePage() {
       </section>
     </div>
   );
-        }
+}
