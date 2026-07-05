@@ -2,12 +2,18 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import HeroCarousel from "@/components/HeroCarousel";
 import PropertyCard from "@/components/PropertyCard";
-import { getSession } from "@/lib/auth";
+import { verifySession, SESSION_COOKIE } from "@/lib/auth";
+import { cookies } from "next/headers";
 
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [heroImages, featured, session] = await Promise.all([
+  // Get session from cookies
+  const cookieStore = cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const session = token ? await verifySession(token) : null;
+
+  const [heroImages, featured] = await Promise.all([
     prisma.heroImage.findMany({ 
       where: { isActive: true }, 
       orderBy: { order: "asc" }, 
@@ -19,12 +25,10 @@ export default async function HomePage() {
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
       take: 3,
     }),
-    getSession(), // Check if user is logged in
   ]);
 
-  // Determine where "List your property" should go
-  const listingLink = session ? "/properties/create" : "/signup";
   const isLoggedIn = !!session;
+  const listingLink = isLoggedIn ? "/properties/create" : "/signup";
 
   return (
     <div>
@@ -61,7 +65,7 @@ export default async function HomePage() {
               href={listingLink} 
               className="btn-primary mt-6 w-full sm:w-auto"
             >
-              {session ? "List your property now" : "List your property"}
+              {isLoggedIn ? "List your property now" : "List your property"}
             </Link>
           </div>
 
@@ -184,7 +188,7 @@ export default async function HomePage() {
             href={listingLink} 
             className="btn-primary px-8 py-3.5 text-base"
           >
-            {session ? "List your property now" : "Get started — it's free"}
+            {isLoggedIn ? "List your property now" : "Get started — it's free"}
           </Link>
           <p className="mt-3 text-xs text-gray-500">
             Part of Ultrafy Networks — connecting Kenya with fiber internet
