@@ -1,38 +1,55 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function ResetPasswordPage() {
-  const router = useRouter();
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
+
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
-  const [password, setPassword] = useState("");
+  const token = searchParams.get("token");
+  const [form, setForm] = useState({ password: "", confirmPassword: "" });
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitting(true);
+    setLoading(true);
     setError(null);
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ token, password: form.password }),
       });
+
+      const data = await res.json();
+
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error?.fieldErrors?.password?.[0] || body.error || "Could not reset your password.");
+        throw new Error(data.error || "Failed to reset password");
       }
-      setDone(true);
-      setTimeout(() => router.push("/login"), 2000);
+
+      setSuccess(true);
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   }
 
@@ -40,8 +57,25 @@ export default function ResetPasswordPage() {
     return (
       <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
         <div className="glass-card p-8 text-center">
-          <p className="text-gray-700">This reset link is missing its token.</p>
-          <Link href="/forgot-password" className="mt-4 inline-block font-semibold text-brand-700">Request a new link</Link>
+          <h1 className="text-2xl font-bold text-gray-900">Invalid Reset Link</h1>
+          <p className="mt-2 text-gray-600">The password reset link is invalid or expired.</p>
+          <Link href="/login" className="mt-4 inline-block text-brand-600 hover:underline">
+            Back to login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
+        <div className="glass-card p-8 text-center">
+          <h1 className="text-2xl font-bold text-green-600">Password Reset Complete</h1>
+          <p className="mt-2 text-gray-600">Your password has been successfully reset.</p>
+          <Link href="/login" className="mt-4 inline-block text-brand-600 hover:underline">
+            Back to login
+          </Link>
         </div>
       </div>
     );
@@ -50,21 +84,49 @@ export default function ResetPasswordPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
       <div className="glass-card p-8">
-        <h1 className="text-2xl font-bold text-gray-900">Set a new password</h1>
-        {done ? (
-          <p className="mt-4 text-sm text-brand-700">Password updated — redirecting you to log in…</p>
-        ) : (
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            {error && <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>}
-            <div>
-              <label className="label-text">New password</label>
-              <input required type="password" minLength={8} className="input-field" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <h1 className="text-2xl font-bold text-gray-900">Reset Password</h1>
+        <p className="mt-1 text-sm text-gray-600">Enter your new password</p>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {error && (
+            <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
+              {error}
             </div>
-            <button type="submit" disabled={submitting} className="btn-primary w-full">
-              {submitting ? "Saving…" : "Reset password"}
-            </button>
-          </form>
-        )}
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700">New Password</label>
+            <input
+              required
+              type="password"
+              minLength={8}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              disabled={loading}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+            <input
+              required
+              type="password"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-brand-500"
+              value={form.confirmPassword}
+              onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+              disabled={loading}
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-md bg-brand-600 px-4 py-2 text-white font-semibold hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Resetting…" : "Reset Password"}
+          </button>
+        </form>
       </div>
     </div>
   );
