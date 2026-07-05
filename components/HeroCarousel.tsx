@@ -8,7 +8,7 @@ type HeroImg = { id: string; url: string; caption?: string | null };
 
 interface HeroCarouselProps {
   images: HeroImg[];
-  isLoggedIn?: boolean; // Add this prop
+  isLoggedIn?: boolean;
 }
 
 export default function HeroCarousel({ images, isLoggedIn = false }: HeroCarouselProps) {
@@ -27,7 +27,7 @@ export default function HeroCarousel({ images, isLoggedIn = false }: HeroCarouse
   };
 
   // Determine where "List your property" should go
-  const listingLink = isLoggedIn ? "/properties/create" : "/signup";
+  const listingLink = isLoggedIn ? "/dashboard/new" : "/signup";
   const ctaText = isLoggedIn ? "List your property now" : "List your property, free";
 
   return (
