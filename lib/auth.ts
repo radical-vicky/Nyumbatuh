@@ -34,7 +34,6 @@ export async function verifySession(token: string): Promise<SessionPayload | nul
   }
 }
 
-// ✅ Add this function
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
