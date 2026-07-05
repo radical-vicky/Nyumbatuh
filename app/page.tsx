@@ -24,10 +24,11 @@ export default async function HomePage() {
 
   // Determine where "List your property" should go
   const listingLink = session ? "/properties/create" : "/signup";
+  const isLoggedIn = !!session;
 
   return (
     <div>
-      <HeroCarousel images={heroImages} />
+      <HeroCarousel images={heroImages} isLoggedIn={isLoggedIn} />
 
       {/* Win-Win Section */}
       <section className="relative z-10 mx-auto -mt-10 max-w-6xl px-4 pb-20 sm:px-6">
@@ -212,4 +213,4 @@ export default async function HomePage() {
       </section>
     </div>
   );
-              }}
+}
