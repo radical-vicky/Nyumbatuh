@@ -2,11 +2,12 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import HeroCarousel from "@/components/HeroCarousel";
 import PropertyCard from "@/components/PropertyCard";
+import { getSession } from "@/lib/auth";
 
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [heroImages, featured] = await Promise.all([
+  const [heroImages, featured, session] = await Promise.all([
     prisma.heroImage.findMany({ 
       where: { isActive: true }, 
       orderBy: { order: "asc" }, 
@@ -18,7 +19,11 @@ export default async function HomePage() {
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
       take: 3,
     }),
+    getSession(), // Check if user is logged in
   ]);
+
+  // Determine where "List your property" should go
+  const listingLink = session ? "/properties/create" : "/signup";
 
   return (
     <div>
@@ -52,10 +57,10 @@ export default async function HomePage() {
               </li>
             </ul>
             <Link 
-              href="/signup" 
+              href={listingLink} 
               className="btn-primary mt-6 w-full sm:w-auto"
             >
-              List your property
+              {session ? "List your property now" : "List your property"}
             </Link>
           </div>
 
@@ -175,10 +180,10 @@ export default async function HomePage() {
         </div>
         <div className="mt-12 text-center">
           <Link 
-            href="/signup" 
+            href={listingLink} 
             className="btn-primary px-8 py-3.5 text-base"
           >
-            Get started — it's free
+            {session ? "List your property now" : "Get started — it's free"}
           </Link>
           <p className="mt-3 text-xs text-gray-500">
             Part of Ultrafy Networks — connecting Kenya with fiber internet
@@ -207,4 +212,4 @@ export default async function HomePage() {
       </section>
     </div>
   );
-}
+              }}
